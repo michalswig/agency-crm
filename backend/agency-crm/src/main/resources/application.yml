@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: agency-crm
+  profiles:
+    default: dev
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: info
