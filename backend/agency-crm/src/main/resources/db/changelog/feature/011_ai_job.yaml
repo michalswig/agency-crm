@@ -1,0 +1,127 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-create-ai-job
+      author: michal
+      changes:
+        - createTable:
+            tableName: ai_job
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_ai_job
+                    nullable: false
+
+              - column:
+                  name: type
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: error_message
+                  type: TEXT
+
+              - column:
+                  name: entity_type
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: entity_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_ai_job_created_by_user
+            baseTableName: ai_job
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Indexy pod kolejkę/monitoring
+        - createIndex:
+            tableName: ai_job
+            indexName: ix_ai_job_status
+            columns:
+              - column:
+                  name: status
+
+        - createIndex:
+            tableName: ai_job
+            indexName: ix_ai_job_type
+            columns:
+              - column:
+                  name: type
+
+        - createIndex:
+            tableName: ai_job
+            indexName: ix_ai_job_entity
+            columns:
+              - column:
+                  name: entity_type
+              - column:
+                  name: entity_id
+
+        - createIndex:
+            tableName: ai_job
+            indexName: ix_ai_job_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        # CHECK: type enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE ai_job
+              ADD CONSTRAINT chk_ai_job_type
+              CHECK (type IN ('ASSIGNMENT_PARSE','MATCHING','SUMMARY'));
+
+        # CHECK: status enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE ai_job
+              ADD CONSTRAINT chk_ai_job_status
+              CHECK (status IN ('PENDING','DONE','FAILED'));
+
+        # CHECK: entity_type (na start szerokie, ale spójne z domeną)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE ai_job
+              ADD CONSTRAINT chk_ai_job_entity_type
+              CHECK (entity_type IN ('CLIENT','CARE_RECIPIENT','CAREGIVER','ASSIGNMENT'));
+
+      rollback:
+        - dropTable:
+            tableName: ai_job

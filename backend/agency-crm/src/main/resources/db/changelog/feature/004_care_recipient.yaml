@@ -1,0 +1,204 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-care-recipient
+      author: michal
+      changes:
+        - createTable:
+            tableName: care_recipient
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_care_recipient
+                    nullable: false
+
+              - column:
+                  name: client_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: date_of_birth
+                  type: DATE
+
+              - column:
+                  name: height_cm
+                  type: INT
+
+              - column:
+                  name: weight_kg
+                  type: INT
+
+              - column:
+                  name: gender
+                  type: VARCHAR(20)
+
+              - column:
+                  name: mobility_level
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: dementia_level
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: has_ms
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: has_alzheimer
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: has_parkinson
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: diseases_notes
+                  type: TEXT
+
+              - column:
+                  name: is_smoker
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: has_pets
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: pets_notes
+                  type: TEXT
+
+              - column:
+                  name: needs_transfer
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: transfer_type
+                  type: VARCHAR(30)
+
+              - column:
+                  name: lifting_aids_notes
+                  type: TEXT
+
+              - column:
+                  name: has_catheter
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: has_stoma
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: uses_diapers
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: medical_notes
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK client_id -> client.id (nie kasujemy klienta, jak ma seniorów)
+        - addForeignKeyConstraint:
+            constraintName: fk_care_recipient_client
+            baseTableName: care_recipient
+            baseColumnNames: client_id
+            referencedTableName: client
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_care_recipient_created_by_user
+            baseTableName: care_recipient
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Index client_id
+        - createIndex:
+            tableName: care_recipient
+            indexName: ix_care_recipient_client_id
+            columns:
+              - column:
+                  name: client_id
+
+        # CHECK enums (SQL, kompatybilnie)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE care_recipient
+              ADD CONSTRAINT chk_care_recipient_mobility_level
+              CHECK (mobility_level IN ('FULL','LIMITED','BEDRIDDEN'));
+
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE care_recipient
+              ADD CONSTRAINT chk_care_recipient_dementia_level
+              CHECK (dementia_level IN ('NONE','MILD','ADVANCED'));
+
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE care_recipient
+              ADD CONSTRAINT chk_care_recipient_transfer_type
+              CHECK (transfer_type IS NULL OR transfer_type IN ('LIFT','NO_LIFT'));
+
+      rollback:
+        - dropTable:
+            tableName: care_recipient
+            cascadeConstraints: true

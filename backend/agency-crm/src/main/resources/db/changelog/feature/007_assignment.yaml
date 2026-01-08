@@ -1,0 +1,198 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-assignment
+      author: michal
+      changes:
+        - createTable:
+            tableName: assignment
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_assignment
+                    nullable: false
+
+              - column:
+                  name: client_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: care_recipient_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: owner_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: start_date
+                  type: DATE
+
+              - column:
+                  name: location_city
+                  type: VARCHAR(120)
+
+              - column:
+                  name: salary_monthly
+                  type: INT
+
+              - column:
+                  name: language_level
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: requirements
+                  type: TEXT
+
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: close_reason
+                  type: VARCHAR(40)
+
+              - column:
+                  name: close_notes
+                  type: TEXT
+
+              - column:
+                  name: current_caregiver_id
+                  type: BIGINT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK: client_id -> client.id
+        - addForeignKeyConstraint:
+            constraintName: fk_assignment_client
+            baseTableName: assignment
+            baseColumnNames: client_id
+            referencedTableName: client
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK: care_recipient_id -> care_recipient.id
+        - addForeignKeyConstraint:
+            constraintName: fk_assignment_care_recipient
+            baseTableName: assignment
+            baseColumnNames: care_recipient_id
+            referencedTableName: care_recipient
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK: owner_user_id -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_assignment_owner_user
+            baseTableName: assignment
+            baseColumnNames: owner_user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK: created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_assignment_created_by_user
+            baseTableName: assignment
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK: current_caregiver_id -> caregiver.id (SET NULL)
+        - addForeignKeyConstraint:
+            constraintName: fk_assignment_current_caregiver
+            baseTableName: assignment
+            baseColumnNames: current_caregiver_id
+            referencedTableName: caregiver
+            referencedColumnNames: id
+            onDelete: SET NULL
+
+        # Indexy pod listy/filtry
+        - createIndex:
+            tableName: assignment
+            indexName: ix_assignment_client_id
+            columns:
+              - column:
+                  name: client_id
+
+        - createIndex:
+            tableName: assignment
+            indexName: ix_assignment_care_recipient_id
+            columns:
+              - column:
+                  name: care_recipient_id
+
+        - createIndex:
+            tableName: assignment
+            indexName: ix_assignment_owner_user_id
+            columns:
+              - column:
+                  name: owner_user_id
+
+        - createIndex:
+            tableName: assignment
+            indexName: ix_assignment_status
+            columns:
+              - column:
+                  name: status
+
+        - createIndex:
+            tableName: assignment
+            indexName: ix_assignment_start_date
+            columns:
+              - column:
+                  name: start_date
+
+        # CHECK: status enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE assignment
+              ADD CONSTRAINT chk_assignment_status
+              CHECK (status IN ('OPEN','CLOSED'));
+
+        # CHECK: language_level enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE assignment
+              ADD CONSTRAINT chk_assignment_language_level
+              CHECK (language_level IN ('NONE','BASIC','COMMUNICATIVE','GOOD','VERY_GOOD'));
+
+        # CHECK: close_reason enum (nullable)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE assignment
+              ADD CONSTRAINT chk_assignment_close_reason
+              CHECK (close_reason IS NULL OR close_reason IN ('FAMILY_CANCELLED','SENIOR_DIED','NURSING_HOME','OTHER'));
+
+      rollback:
+        - dropTable:
+            tableName: assignment

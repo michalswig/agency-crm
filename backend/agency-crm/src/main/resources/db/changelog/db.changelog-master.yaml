@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/feature/001_user.yaml
+  - include:
+      file: db/changelog/feature/002_intermediary.yaml
+  - include:
+      file: db/changelog/feature/003_client.yaml
+  - include:
+      file: db/changelog/feature/004_care_recipient.yaml
+  - include:
+      file: db/changelog/feature/005_caregiver.yaml
+  - include:
+      file: db/changelog/feature/006_caregiver_language.yaml
+  - include:
+      file: db/changelog/feature/007_assignment.yaml
+  - include:
+      file: db/changelog/feature/008_caregiver_application.yaml
+  - include:
+      file: db/changelog/feature/009_activity.yaml
+  - include:
+      file: db/changelog/feature/010_employee.yaml
+  - include:
+      file: db/changelog/feature/011_ai_job.yaml
+
+

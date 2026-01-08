@@ -1,0 +1,109 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-client
+      author: michal
+      changes:
+        - createTable:
+            tableName: client
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_client
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: country
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: city
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: postal_code
+                  type: VARCHAR(20)
+
+              - column:
+                  name: street
+                  type: VARCHAR(200)
+
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+
+              - column:
+                  name: notes
+                  type: TEXT
+
+              - column:
+                  name: intermediary_id
+                  type: BIGINT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK created_by -> app_user.id (RESTRICT)
+        - addForeignKeyConstraint:
+            constraintName: fk_client_created_by_user
+            baseTableName: client
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK intermediary_id -> intermediary.id (SET NULL, bo partner może zniknąć)
+        - addForeignKeyConstraint:
+            constraintName: fk_client_intermediary
+            baseTableName: client
+            baseColumnNames: intermediary_id
+            referencedTableName: intermediary
+            referencedColumnNames: id
+            onDelete: SET NULL
+
+        # Index: intermediary_id
+        - createIndex:
+            tableName: client
+            indexName: ix_client_intermediary_id
+            columns:
+              - column:
+                  name: intermediary_id
+
+        # Index: email (częsty search)
+        - createIndex:
+            tableName: client
+            indexName: ix_client_email
+            columns:
+              - column:
+                  name: email
+
+      rollback:
+        - dropTable:
+            tableName: client
+            cascadeConstraints: true

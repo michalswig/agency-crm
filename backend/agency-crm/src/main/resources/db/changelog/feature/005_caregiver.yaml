@@ -1,0 +1,131 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-caregiver
+      author: michal
+      changes:
+        - createTable:
+            tableName: caregiver
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_caregiver
+                    nullable: false
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: gender
+                  type: VARCHAR(20)
+
+              - column:
+                  name: date_of_birth
+                  type: DATE
+
+              - column:
+                  name: weight_kg
+                  type: INT
+
+              - column:
+                  name: height_cm
+                  type: INT
+
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+
+              - column:
+                  name: nationality
+                  type: VARCHAR(80)
+
+              - column:
+                  name: experience_years
+                  type: INT
+
+              - column:
+                  name: has_driver_license
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: is_smoker
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: medical_qualification_notes
+                  type: TEXT
+
+              - column:
+                  name: recruiter_notes
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_created_by_user
+            baseTableName: caregiver
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Index: last_name (wyszukiwanie)
+        - createIndex:
+            tableName: caregiver
+            indexName: ix_caregiver_last_name
+            columns:
+              - column:
+                  name: last_name
+
+        # Index: email (częsty search)
+        - createIndex:
+            tableName: caregiver
+            indexName: ix_caregiver_email
+            columns:
+              - column:
+                  name: email
+
+        # (Opcjonalnie) CHECK gender (jeśli chcesz ograniczyć wartości)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE caregiver
+              ADD CONSTRAINT chk_caregiver_gender
+              CHECK (gender IS NULL OR gender IN ('FEMALE','MALE','OTHER'));
+
+      rollback:
+        - dropTable:
+            tableName: caregiver
+            cascadeConstraints: true
