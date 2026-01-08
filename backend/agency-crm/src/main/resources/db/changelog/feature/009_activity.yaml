@@ -1,0 +1,138 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-create-activity
+      author: michal
+      changes:
+        - createTable:
+            tableName: activity
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_activity
+                    nullable: false
+
+              - column:
+                  name: target_type
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: target_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: type
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: note
+                  type: TEXT
+
+              - column:
+                  name: next_action
+                  type: VARCHAR(255)
+
+              - column:
+                  name: due_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+              - column:
+                  name: owner_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK owner_user_id -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_activity_owner_user
+            baseTableName: activity
+            baseColumnNames: owner_user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_activity_created_by_user
+            baseTableName: activity
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Index: (target_type, target_id) - najważniejszy
+        - createIndex:
+            tableName: activity
+            indexName: ix_activity_target
+            columns:
+              - column:
+                  name: target_type
+              - column:
+                  name: target_id
+
+        # Index: owner_user_id (widok "moje")
+        - createIndex:
+            tableName: activity
+            indexName: ix_activity_owner_user_id
+            columns:
+              - column:
+                  name: owner_user_id
+
+        # Index: due_at (dashboard "co dziś/na kiedy")
+        - createIndex:
+            tableName: activity
+            indexName: ix_activity_due_at
+            columns:
+              - column:
+                  name: due_at
+
+        # (Opcjonalnie) Index: created_at
+        - createIndex:
+            tableName: activity
+            indexName: ix_activity_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        # CHECK: target_type enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE activity
+              ADD CONSTRAINT chk_activity_target_type
+              CHECK (target_type IN ('CLIENT','CAREGIVER','ASSIGNMENT'));
+
+        # CHECK: type enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE activity
+              ADD CONSTRAINT chk_activity_type
+              CHECK (type IN ('CALL','WHATSAPP','EMAIL'));
+
+      rollback:
+        - dropTable:
+            tableName: activity

@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-caregiver-language
+      author: michal
+      changes:
+        - createTable:
+            tableName: caregiver_language
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_caregiver_language
+                    nullable: false
+
+              - column:
+                  name: caregiver_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: language_code
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: level
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK caregiver_id -> caregiver.id (to jest "child", można CASCADE)
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_language_caregiver
+            baseTableName: caregiver_language
+            baseColumnNames: caregiver_id
+            referencedTableName: caregiver
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_language_created_by_user
+            baseTableName: caregiver_language
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # UNIQUE(caregiver_id, language_code)
+        - addUniqueConstraint:
+            tableName: caregiver_language
+            columnNames: caregiver_id, language_code
+            constraintName: uq_caregiver_language_caregiver_lang
+
+        # Index caregiver_id (lookup)
+        - createIndex:
+            tableName: caregiver_language
+            indexName: ix_caregiver_language_caregiver_id
+            columns:
+              - column:
+                  name: caregiver_id
+
+        # Index language_code (filtry)
+        - createIndex:
+            tableName: caregiver_language
+            indexName: ix_caregiver_language_language_code
+            columns:
+              - column:
+                  name: language_code
+
+        # CHECK level enum (SQL, kompatybilnie)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE caregiver_language
+              ADD CONSTRAINT chk_caregiver_language_level
+              CHECK (level IN ('NONE','BASIC','COMMUNICATIVE','GOOD','VERY_GOOD'));
+
+      rollback:
+        - dropTable:
+            tableName: caregiver_language
+            cascadeConstraints: true

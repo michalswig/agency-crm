@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-intermediary
+      author: michal
+      changes:
+        - createTable:
+            tableName: intermediary
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_intermediary
+                    nullable: false
+
+              - column:
+                  name: type
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+
+              - column:
+                  name: notes
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE intermediary
+              ADD CONSTRAINT chk_intermediary_type
+              CHECK (type IN ('PARTNER','CAREGIVER','EMPLOYEE','OTHER'));
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_intermediary_created_by_user
+            baseTableName: intermediary
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Index type (filtry / raporty)
+        - createIndex:
+            tableName: intermediary
+            indexName: ix_intermediary_type
+            columns:
+              - column:
+                  name: type
+
+      rollback:
+        - dropTable:
+            tableName: intermediary
+            cascadeConstraints: true

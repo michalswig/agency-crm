@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-create-caregiver-application
+      author: michal
+      changes:
+        - createTable:
+            tableName: caregiver_application
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_caregiver_application
+                    nullable: false
+
+              - column:
+                  name: assignment_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: caregiver_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: close_reason
+                  type: VARCHAR(30)
+
+              - column:
+                  name: match_score
+                  type: INT
+
+              - column:
+                  name: notes
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK assignment_id -> assignment.id (child of assignment)
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_application_assignment
+            baseTableName: caregiver_application
+            baseColumnNames: assignment_id
+            referencedTableName: assignment
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        # FK caregiver_id -> caregiver.id
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_application_caregiver
+            baseTableName: caregiver_application
+            baseColumnNames: caregiver_id
+            referencedTableName: caregiver
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # FK created_by -> app_user.id
+        - addForeignKeyConstraint:
+            constraintName: fk_caregiver_application_created_by_user
+            baseTableName: caregiver_application
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # UNIQUE(assignment_id, caregiver_id)
+        - addUniqueConstraint:
+            tableName: caregiver_application
+            columnNames: assignment_id, caregiver_id
+            constraintName: uq_caregiver_application_assignment_caregiver
+
+        # Indexy
+        - createIndex:
+            tableName: caregiver_application
+            indexName: ix_caregiver_application_assignment_id
+            columns:
+              - column:
+                  name: assignment_id
+
+        - createIndex:
+            tableName: caregiver_application
+            indexName: ix_caregiver_application_caregiver_id
+            columns:
+              - column:
+                  name: caregiver_id
+
+        - createIndex:
+            tableName: caregiver_application
+            indexName: ix_caregiver_application_status
+            columns:
+              - column:
+                  name: status
+
+        # CHECK: status enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE caregiver_application
+              ADD CONSTRAINT chk_caregiver_application_status
+              CHECK (status IN ('ACTIVE','CLOSED'));
+
+        # CHECK: close_reason enum (nullable)
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE caregiver_application
+              ADD CONSTRAINT chk_caregiver_application_close_reason
+              CHECK (close_reason IS NULL OR close_reason IN ('ACCEPTED','REJECTED','WITHDRAWN'));
+
+      rollback:
+        - dropTable:
+            tableName: caregiver_application

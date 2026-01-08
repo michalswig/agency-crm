@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-create-employee
+      author: michal
+      changes:
+        - createTable:
+            tableName: employee
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_employee
+                    nullable: false
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+
+              - column:
+                  name: position
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: linked_user_id
+                  type: BIGINT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        # FK linked_user_id -> app_user.id (SET NULL)
+        - addForeignKeyConstraint:
+            constraintName: fk_employee_linked_user
+            baseTableName: employee
+            baseColumnNames: linked_user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: SET NULL
+
+        # FK created_by -> app_user.id (RESTRICT)
+        - addForeignKeyConstraint:
+            constraintName: fk_employee_created_by_user
+            baseTableName: employee
+            baseColumnNames: created_by
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        # Index linked_user_id
+        - createIndex:
+            tableName: employee
+            indexName: ix_employee_linked_user_id
+            columns:
+              - column:
+                  name: linked_user_id
+
+        # Index email
+        - createIndex:
+            tableName: employee
+            indexName: ix_employee_email
+            columns:
+              - column:
+                  name: email
+
+        # CHECK position enum
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: >
+              ALTER TABLE employee
+              ADD CONSTRAINT chk_employee_position
+              CHECK (position IN ('RECRUITER','MANAGER','COORDINATOR'));
+
+      rollback:
+        - dropTable:
+            tableName: employee
