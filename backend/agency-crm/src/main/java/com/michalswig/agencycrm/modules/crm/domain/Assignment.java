@@ -110,5 +110,18 @@ public class Assignment {
     public CareRecipient getCareRecipient() { return careRecipient; }
     public User getOwner() { return owner; }
     public AssignmentStatus getStatus() { return status; }
+
+    public void changeStatus(AssignmentStatus status) { this.status = status; }
+
+    public void close(AssignmentCloseReason reason, String closeNotes) {
+        this.status = AssignmentStatus.CLOSED;
+        this.closeReason = reason;
+        this.closeNotes = closeNotes;
+    }
+
+    public void setCurrentCaregiver(Caregiver currentCaregiver) {
+        this.currentCaregiver = currentCaregiver;
+    }
+
 }
 

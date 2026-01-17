@@ -79,4 +79,16 @@ public class CaregiverApplication {
     public Assignment getAssignment() { return assignment; }
     public Caregiver getCaregiver() { return caregiver; }
     public ApplicationStatus getStatus() { return status; }
+
+    // --- domain methods for workflow ---
+    public void changeStatus(ApplicationStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public void close(ApplicationCloseReason reason) {
+        this.status = ApplicationStatus.CLOSED;
+        this.closeReason = reason;
+    }
+
+
 }
